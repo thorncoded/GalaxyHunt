@@ -15,7 +15,7 @@ public class GalaxyHuntSubscene extends SubScene {
 	private final static String BACKGROUND_IMAGE = "model/resources/blue_panel.png";
 
 	private boolean isHidden;
-	
+	///////aaaaaa me pengy
 	public GalaxyHuntSubscene() {
 		super(new AnchorPane(), 600, 400);
 		// TODO Auto-generated constructor stub
