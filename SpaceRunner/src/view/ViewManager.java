@@ -105,6 +105,21 @@ public class ViewManager {
 	private void createStartButton() {
 		GalaxyHuntButton startButton = new GalaxyHuntButton("PLAY");
 		addMenuButton(startButton);
+		
+		startButton.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent event) {
+				/*try {
+					//SoundEffects.playSound(new URI(BUTTON_SFX));
+				} catch (URISyntaxException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}*/
+					mainStage.hide();
+					GameViewManager gameViewManagger = new GameViewManager();
+					gameViewManagger.createNewGame(mainStage);
+			}
+		});
 	}
 
 	private void createScoresButton() {
