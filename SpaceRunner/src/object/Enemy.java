@@ -17,20 +17,19 @@ public class Enemy extends Sprite{
         this.type = type;
         this.maxHP = hpSelector(this.type);
         this.HP = hpSelector(this.type);
-		Image imageCon = new Image(selectFileName(this.type));
-		this.setImage(imageCon);
+        setImage(selectFileName(this.type));
     }
     
     public String selectFileName(String type) {
     	switch(type){
     	case "Basic":
-    		return "/object/resources/basicEnemy.png";
+    		return "object/resources/basicEnemy.png";
     	case "Warrior":
-    		return "/object/resources/warriorEnemy.png";
+    		return "object/resources/warriorEnemy.png";
     	case "Centurion":
-    		return "/object/resources/centurionEnemy.png";
+    		return "object/resources/centurionEnemy.png";
     	default:
-    		return "/object/resources/basicEnemy.png";
+    		return "object/resources/basicEnemy.png";
     	}
     }
     
@@ -51,4 +50,3 @@ public class Enemy extends Sprite{
     	this.HP--;
     }
 }
-

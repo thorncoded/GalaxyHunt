@@ -138,7 +138,9 @@
 package view;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import javafx.animation.AnimationTimer;
 import javafx.event.EventHandler;
@@ -152,6 +154,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import model.SmallInfoLabel;
 import object.Enemy;
+import object.HealthBar;
 import object.Player;
 import object.Sprite;
 
@@ -167,6 +170,7 @@ public class GameViewManager {
 	private Stage menuStage;
 	private Player ship;
 	private Sprite bg;
+	private HealthBar healthbar;
 	private AnimationTimer gameTimer;
 	Canvas canvas;
 	GraphicsContext context; 
@@ -247,6 +251,7 @@ public class GameViewManager {
 		this.menuStage.hide();
 		createBackground();
 		createShip();
+		createHealthBar();
 		createKeyListeners();
 		//createGameElements(choosenShip);
 		createGameLoop();
@@ -265,6 +270,10 @@ public class GameViewManager {
 		ship.setPosition(250, 590);
 	}
 	
+	private void createHealthBar() {
+		healthbar = new HealthBar(250, 650, 160, 15);
+	}
+	
 	public void keyEvents(Player player) {
 		if (keyPressedList.contains("A"))
 			player.addVelocity(-500, 0);
@@ -279,6 +288,113 @@ public class GameViewManager {
 		keyJustPressedList.clear();
 	}
 	
+	public int getRandomNumber(int min, int max) {
+	    return (int) ((Math.random() * (max - min)) + min);
+	}
+	
+	//have to do two separate ones because the first has a tendency to only produce basic and warrior class
+	//while I was tempted to put these next couple functions in the enemy class, I decided it might be simpler to just put them here instead
+	public int getRandomEnemy(int min, int max) {
+		int randomNum = ThreadLocalRandom.current().nextInt(min, max + 1);
+		return randomNum;
+	}
+	
+	// 50% chance of creating basic type, 35% of warrior, 15% of centurion
+	public String randomEnemyType (int randNum) {
+		int probResult;
+		if (1 <= randNum && randNum <= 3) {
+			probResult = 3;
+		} else if (4 <= randNum && randNum <= 10) {
+			probResult = 2;
+		} else {
+			probResult = 1;
+		}
+		switch (probResult) {
+			case 1:
+				return "Basic";
+			case 2:
+				return "Warrior";
+			case 3:
+				return "Centurion";
+			default:
+				return "Basic";
+		}
+	}
+	
+	//checks to make sure that enemies that spawn don't overlap those currently on the screen
+	public static boolean doesNewEnemyOverlap(List<Enemy> arraylist, double randXNum) {
+	    for (Enemy spr : arraylist) {
+	        if (((spr.position.x + 40 >= randXNum) && (randXNum >= spr.position.x)) || ((spr.position.x - 40 <= randXNum) && (randXNum <= spr.position.x))) {
+	            return true;
+	        }
+	    }
+	    return false;
+	}
+	public void enemyLogic(HealthBar healthBar) {
+		//check to see how many enemy ships are onscreen/in list
+		//if less than 5, spawn a new one at a random position above 0 y
+		//if enemy ship has traveled past screen boundary, remove from list
+		//subtract hp if enemy ship travels past boundary
+		if (enemyList.size() < 5) {
+			
+			Enemy tempEnemy = new Enemy(randomEnemyType(getRandomEnemy(1, 20)));
+			//reason for the values 22 and 471 is because the spaceships are ~43 pixels wide-- it makes sure they dont go off either edge of the screen
+			double randXNum = getRandomNumber(22, 471);
+			//checks to make sure the new spaceship wont overlap any that are currently on screen
+			do {
+				randXNum = getRandomNumber(22, 471);
+			} while (doesNewEnemyOverlap(enemyList, randXNum) == true);
+			//generate random number- if boundaries of tempEnemy at spawn overlap
+			//those of the current position of an enemy ship, generate a new planned coordinate
+			tempEnemy.position.set(randXNum, 0);
+			tempEnemy.velocity.set(0, getRandomNumber(60, 140));
+	        enemyList.add(tempEnemy); 
+		}
+			
+		for (int m = 0; m < enemyList.size(); m++) {
+			Sprite tempEnemy = enemyList.get(m);
+			tempEnemy.update(1/60.0);
+			//if the enemy ship goes past the bottom of the screen, remove it and decrease health by one;
+			if (tempEnemy.position.y > 666) {
+				enemyList.remove(m);
+				healthBar.decreaseHealth();
+				//gameOver();
+				
+			}
+
+		}
+	}
+	
+	public void bulletLogic(/* Score score */) {
+		for (int n = 0; n < bulletList.size(); n++) {
+			Sprite bullet = bulletList.get(n);
+			bullet.update(1/60.0);
+			//if bullet has been onscreen for longer than two seconds or goes off the screen, remove from list
+			if (bullet.elapsedTime > 2.0)
+				bulletList.remove(n);
+			if (bullet.position.y < 0)
+				bulletList.remove(n);
+		}
+		
+
+		//if any of the bullets hit the enemy, bullet from bulletList
+		//also decrease enemy's hp and if enemy's hp is zero, remove from the list
+		for (int n = 0; n < bulletList.size(); n++) {
+			Sprite bullet = bulletList.get(n);
+            for (int m = 0; m < enemyList.size(); m++) {
+            	Enemy tempEnemy = enemyList.get(m);
+            	if (bullet.intersects(tempEnemy)) {
+            		bulletList.remove(n);
+            		tempEnemy.hpDecrease();
+            		if (tempEnemy.HP == 0) {
+						/* score.increaseScore(tempEnemy.maxHP); */
+        				enemyList.remove(m);
+            		}
+            	}
+            	
+            }
+		}
+	}
 	private void createGameLoop() {
 		gameTimer = new AnimationTimer() {
 
@@ -291,10 +407,23 @@ public class GameViewManager {
 				moveShip();*/
 				
 				ship.setVelocity(0, 0);
+				
 				keyEvents(ship);
+				bulletLogic();
+				enemyLogic(healthbar);
+				
 				ship.update(1 / 60.0);
+				healthbar.update();
+				
 				bg.render(context);
 				ship.render(context);
+				healthbar.render(context);
+				
+				for (Sprite bullet : bulletList)
+					bullet.render(context);
+				for (Enemy tempEnemy : enemyList) {
+					tempEnemy.render(context);
+				}
 				keyJustPressedList.clear();
 			}
 			
