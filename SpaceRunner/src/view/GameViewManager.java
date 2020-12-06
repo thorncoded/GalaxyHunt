@@ -151,7 +151,11 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import model.Score;
 import model.SmallInfoLabel;
 import object.Enemy;
 import object.HealthBar;
@@ -175,17 +179,9 @@ public class GameViewManager {
 	Canvas canvas;
 	GraphicsContext context; 
 	
-	
-	private ImageView[] brownMeteors;
-	private ImageView[] greyMeteors;
-	Random randomPositionGenerator;
-	
-	
-	private ImageView star;
 	private SmallInfoLabel pointsLabel;
-	private ImageView[] playerLifes;
-	private int playerLife;
 	private int points;
+	private Score score;
 
 	ArrayList<String> keyPressedList = new ArrayList<String>();
 	
@@ -198,9 +194,7 @@ public class GameViewManager {
 	
 	public GameViewManager() {
 		initializeStage();
-		
-		//randomPositionGenerator = new Random();
-		
+
 	}
 	
 	private void createKeyListeners() {
@@ -249,17 +243,20 @@ public class GameViewManager {
 	
 		this.menuStage = menuStage;
 		this.menuStage.hide();
-		createBackground();
-		createShip();
-		createHealthBar();
-		createKeyListeners();
-		//createGameElements(choosenShip);
-		createGameLoop();
+		elementCreation();
 		gameStage.show();
 	}
 	
 	
 
+	private void elementCreation() {
+		createBackground();
+		createShip();
+		createHealthBar();
+		createScore();
+		createKeyListeners();
+		createGameLoop();
+	}
 	
 	private void createBackground() {
 		bg = new Sprite("space", "object/resources/spacebg.jpg");
@@ -272,6 +269,20 @@ public class GameViewManager {
 	
 	private void createHealthBar() {
 		healthbar = new HealthBar(250, 650, 160, 15);
+	}
+	
+	private void createScore() {
+		score = new Score(319, 60, 0);
+	}
+	
+	private void updateScore(Score score, GraphicsContext context) {
+		context.setFill(Color.WHITE);
+		context.setStroke(Color.DARKORCHID);
+		Font ft0 = Font.font("arial", FontWeight.BOLD, 30);
+		context.setFont(ft0);
+		String scoreText = "SCORE: " + score.getCurrentScore();
+		context.fillText(scoreText, score.getScoreX(), score.getScoreY());
+	    context.strokeText(scoreText, score.getScoreX(), score.getScoreY());
 	}
 	
 	public void keyEvents(Player player) {
@@ -357,8 +368,7 @@ public class GameViewManager {
 			//if the enemy ship goes past the bottom of the screen, remove it and decrease health by one;
 			if (tempEnemy.position.y > 666) {
 				enemyList.remove(m);
-				healthBar.decreaseHealth();
-				//gameOver();
+				removeHealth(healthBar);
 				
 			}
 
@@ -387,7 +397,7 @@ public class GameViewManager {
             		bulletList.remove(n);
             		tempEnemy.hpDecrease();
             		if (tempEnemy.HP == 0) {
-						/* score.increaseScore(tempEnemy.maxHP); */
+						score.increaseScore(tempEnemy.maxHP);
         				enemyList.remove(m);
             		}
             	}
@@ -395,16 +405,21 @@ public class GameViewManager {
             }
 		}
 	}
+	
+	public void removeHealth(HealthBar healthBar) {
+		healthBar.decreaseHealth();
+		if(healthBar.getCurrentHealth() == 0) {
+			gameStage.close();
+			gameTimer.stop();
+			menuStage.show();
+		}
+	}
+	
 	private void createGameLoop() {
 		gameTimer = new AnimationTimer() {
 
 			@Override
 			public void handle(long now) {
-				/*moveBackground();
-				moveGameElements();
-				checkIfElementAreBehindTheShipAndRelocated();
-				checkIfElementsCollide();
-				moveShip();*/
 				
 				ship.setVelocity(0, 0);
 				
@@ -425,11 +440,12 @@ public class GameViewManager {
 					tempEnemy.render(context);
 				}
 				keyJustPressedList.clear();
+				updateScore(score, context);
+
 			}
 			
 		};
 		gameTimer.start();
-		//gameStage.show();
 	}
 	
 
