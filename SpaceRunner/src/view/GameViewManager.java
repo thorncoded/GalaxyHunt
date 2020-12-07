@@ -10,6 +10,7 @@ import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -43,9 +44,9 @@ public class GameViewManager {
 	Canvas canvas;
 	GraphicsContext context; 
 	
-	private SmallInfoLabel pointsLabel;
-	private int points;
 	private Score score;
+	private double velocityMultiplier = 1;
+	private String Screen = "GAME";
 
 	ArrayList<String> keyPressedList = new ArrayList<String>();
 	
@@ -90,8 +91,35 @@ public class GameViewManager {
 		});
 	}
 	
+	private void createEndScreenKeyListeners() {
+		gameScene.setOnKeyPressed(new EventHandler<KeyEvent>() {
+
+			@Override
+			public void handle(KeyEvent event) {
+				String keyName = event.getCode().toString();
+				if (keyName == "Z") {
+					gameStage.close();
+					gameTimer.stop();
+					menuStage.show();
+				} else if (keyName == "C") {
+					replayGame();
+				}
+				
+			}
+		});
+	}
 	
-	
+	private void replayGame() {
+		velocityMultiplier = 1;
+		healthbar.setCurrentHealth(healthbar.getMaxHealth());
+		score.setCurrentScore(0);
+		bulletList.clear();
+		enemyList.clear();
+		repairShipList.clear();
+		elementCreation();
+		Screen = "GAME";
+		
+	}
 	private void initializeStage() {
 		gamePane = new BorderPane();
 		gamePane.setPrefSize(GAME_WIDTH, GAME_HEIGHT);
@@ -109,6 +137,7 @@ public class GameViewManager {
 		this.menuStage = menuStage;
 		this.menuStage.hide();
 		elementCreation();
+		createGameLoop();
 		gameStage.show();
 	}
 	
@@ -120,7 +149,6 @@ public class GameViewManager {
 		createHealthBar();
 		createScore();
 		createKeyListeners();
-		createGameLoop();
 	}
 	
 	private void createBackground() {
@@ -218,6 +246,7 @@ public class GameViewManager {
 	
 
 	public void enemyLogic(HealthBar healthBar) {
+		if (Screen == "GAME") {
 		//check to see how many enemy ships are onscreen/in list
 		//if less than 5, spawn a new one at a random position above 0 y
 		//if enemy ship has traveled past screen boundary, remove from list
@@ -234,7 +263,7 @@ public class GameViewManager {
 			//generate random number- if boundaries of tempEnemy at spawn overlap
 			//those of the current position of an enemy ship, generate a new planned coordinate
 			tempEnemy.position.set(randXNum, 0);
-			tempEnemy.velocity.set(0, getRandomNumber(60, 140));
+			tempEnemy.velocity.set(0, (getRandomShip(20, 100) * velocityMultiplier));
 	        enemyList.add(tempEnemy); 
 		}
 			
@@ -249,14 +278,16 @@ public class GameViewManager {
 			}
 
 		}
+		}
 	}
 	public void repairShipLogic(HealthBar healthBar) {
+		if(Screen == "GAME") {
 		//check to see how many enemy ships are onscreen/in list
 		//random generation, if getRandomShip returns a 16, then spawn a new RepairShip
 		//if less than 5, spawn a new one at a random position above 0 y
 		//if enemy ship has traveled past screen boundary, remove from list
 		//subtract hp if enemy ship travels past boundary
-		if (((enemyList.size() + repairShipList.size()) < 5) && (getRandomShip(1,5) == 3)){
+		if (((enemyList.size() + repairShipList.size()) < 5) && (getRandomShip(1,20) == 16)){
 			//TODO: monitor this. 2 hp too much? too little?
 			RepairShip tempShip = new RepairShip(2);
 			//reason for the values 35 and 471 is because the repairShip is 70 pixels wide-- it makes sure they dont go off either edge of the screen
@@ -268,7 +299,7 @@ public class GameViewManager {
 			//generate random number- if boundaries of tempShip at spawn overlap
 			//those of the current position of another ship, generate a new planned coordinate
 			tempShip.position.set(randXNum, 0);
-			tempShip.velocity.set(0, getRandomNumber(60, 140));
+			tempShip.velocity.set(0, getRandomShip(60, 140));
 	        repairShipList.add(tempShip); 
 		}
 			
@@ -282,6 +313,7 @@ public class GameViewManager {
 				healthBar.increaseHealth(10);
 			}
 
+		}
 		}
 	}
 	
@@ -332,14 +364,18 @@ public class GameViewManager {
 		}
 	}
 	
+	private void changeVelocity(Score score) {
+		if (score.getCurrentScore() % 10 == 0) {
+			velocityMultiplier = velocityMultiplier + .2;
+		}
+	}
 	public void removeHealth(HealthBar healthBar) {
 		healthBar.decreaseHealth();
 		//monitors to see if the healthbar hits 0
 		if(healthBar.getCurrentHealth() == 0) {
-			gameStage.close();
-			gameTimer.stop();
-			//TODO: IMPLEMENT PROPER SCREENS
-			menuStage.show();
+			int passScore = score.getCurrentScore();
+			Screen = ("GAME_OVER");
+			
 		}
 	}
 	
@@ -352,7 +388,7 @@ public class GameViewManager {
 
 			@Override
 			public void handle(long now) {
-				
+				if (Screen == "GAME") {
 				ship.setVelocity(0, 0);
 				
 				keyEvents(ship);
@@ -377,6 +413,48 @@ public class GameViewManager {
 				}
 				keyJustPressedList.clear();
 				updateScore(score, context);
+				} else if (Screen == "GAME_OVER") {
+					context.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+					context.setFill(Color.INDIGO);
+					context.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+					Font ft1 = Font.font("arial black", FontWeight.BOLD, 50);
+					context.setFont(ft1);
+					context.setFill(Color.WHITE);
+					context.setStroke( Color.GREY );
+					String gg = "GAME OVER!";
+					context.fillText(gg, 60, 100 );
+					context.strokeText(gg, 60, 100);
+					
+					
+					//Font ft3 = Font.font("arial black", FontWeight.BOLD, 0);
+					int finalScore = score.getCurrentScore();
+					String endScore = "FINAL SCORE: " + finalScore;
+					int endScore_x = 170;
+					int endScore_y = 200;
+					
+					String instruction1  = "PRESS Z TO GO TO MENU SCREEN";
+					String instruction2 = "PRESS C TO REPLAY";
+					int instructions_x = 80;
+					int instruction1_y = 250;
+					int instruction2_y = instruction1_y + 25;
+					Font ft0 = Font.font("arial", FontWeight.BOLD, 30);
+					Font ft3 = Font.font("arial", FontWeight.BOLD, 20);
+					context.setFont(ft0);
+					context.fillText(endScore, endScore_x, endScore_y);
+					context.strokeText(endScore, endScore_x, endScore_y);
+					context.setFont(ft3);
+					context.setFill(Color.GOLD);
+					context.setStroke( Color.GREY );
+					context.fillText(instruction1, instructions_x, instruction1_y);
+					context.strokeText(instruction1, instructions_x, instruction1_y);
+					context.fillText(instruction2, instructions_x, instruction2_y);
+					context.strokeText(instruction2, instructions_x, instruction2_y);
+					
+					String weepingEarth = "view/resources/andtheearthcries.jpg";
+					Image i = new Image(weepingEarth);
+					context.drawImage(i, 0, 300);
+					createEndScreenKeyListeners();
+				}
 
 			}
 			

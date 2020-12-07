@@ -26,6 +26,7 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundPosition;
 import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import model.GalaxyHuntButton;
@@ -46,6 +47,7 @@ public class ViewManager {
 	private GalaxyHuntSubscene creditsSubscene;
 	private GalaxyHuntSubscene helpSubscene;
 	private GalaxyHuntSubscene scoreSubscene;
+	private GalaxyHuntSubscene gameOverSubScene;
 
 	private GalaxyHuntSubscene sceneToHide;
 
@@ -79,7 +81,6 @@ public class ViewManager {
 		mainPane.getChildren().add(helpSubscene);
 		scoreSubscene = new GalaxyHuntSubscene();
 		mainPane.getChildren().add(scoreSubscene);
-
 		createCreditsSubScene();
 	}
 
@@ -217,6 +218,7 @@ public class ViewManager {
 
 	}
 	
+
 	//CREDITS SUBSCENE
 	//TODO: ADD RELEVANT LINKS/ASSET REFERENCES
 	//TODO: ASK OTHERS IF THEY WANNA PUT LINKS TO WEBSITES, PROJECTS
