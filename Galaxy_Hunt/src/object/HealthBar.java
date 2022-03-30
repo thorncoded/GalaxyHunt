@@ -6,7 +6,7 @@ import javafx.scene.paint.Color;
 public class HealthBar extends Rectangle {
 	
 	final double maxHealth = 50.0;
-	double currentHealth = 3.0;
+	double currentHealth = maxHealth;
 	double healthWidth = this.w;
 	Color color = Color.GREEN;
 	

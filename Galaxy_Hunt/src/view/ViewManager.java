@@ -49,7 +49,7 @@ public class ViewManager {
 	private GalaxyHuntSubscene scoreSubscene;
 	private GalaxyHuntSubscene gameOverSubScene;
 
-	private GalaxyHuntSubscene sceneToHide;
+	private GalaxyHuntSubscene currentSubScene;
 
 	List<GalaxyHuntButton> menuButtons;
 
@@ -65,13 +65,14 @@ public class ViewManager {
 		createLogo();
 	}
 
-	private void showSubScene(GalaxyHuntSubscene subScene) {
-		if (sceneToHide != null) {
-			sceneToHide.moveSubScene();
+	private void showSubScene(GalaxyHuntSubscene subSceneToShow) {
+		//hides current subscene and moves parameter subSceneToShow to proper position
+		if (currentSubScene != null) {
+			currentSubScene.moveSubScene();
 		}
 
-		subScene.moveSubScene();
-		sceneToHide = subScene;
+		subSceneToShow.moveSubScene();
+		currentSubScene = subSceneToShow;
 	}
 
 	private void createSubscenes() {
@@ -85,6 +86,7 @@ public class ViewManager {
 	}
 
 	private void addMenuButton(GalaxyHuntButton button) {
+		//adds buttons to list of menuButtons, then places them on the screeen
 		button.setLayoutX(MENU_BUTTON_START_X);
 		button.setLayoutY(MENU_BUTTON_START_Y + menuButtons.size() * 70);
 		menuButtons.add(button);
@@ -92,6 +94,7 @@ public class ViewManager {
 	}
 
 	private void CreateButtons() {
+		//creates all buttons
 		createStartButton();
 		createScoresButton();
 		createHelpButton();
@@ -124,21 +127,23 @@ public class ViewManager {
 	}
 
 	private void createScoresButton() {
+		//creates scores button and event handler
 		GalaxyHuntButton scoresButton = new GalaxyHuntButton("SCORES");
 		addMenuButton(scoresButton);
 
 		scoresButton.setOnAction(new EventHandler<ActionEvent>() {
 
 			@Override
+			//when clicked, show scoreSubscene
 			public void handle(ActionEvent event) {
 				showSubScene(scoreSubscene);
-
 			}
 		});
 
 	}
 
 	private void createHelpButton() {
+		//creates help button and event handler
 		GalaxyHuntButton helpButton = new GalaxyHuntButton("HELP");
 		addMenuButton(helpButton);
 		
@@ -153,7 +158,7 @@ public class ViewManager {
 	}
 
 	private void createCreditsButton() {
-
+		//creates credits button and event handler
 		GalaxyHuntButton creditsButton = new GalaxyHuntButton("CREDITS");
 		addMenuButton(creditsButton);
 
@@ -176,20 +181,21 @@ public class ViewManager {
 			@Override
 			public void handle(ActionEvent event) {
 				mainStage.close();
-
 			}
 		});
 
 	}
 
 	private void createBackground() {
-		Image backgroundImage = new Image("view/resources/spacebg.jpg", 1200, 1200, false, true);
+		//sets background to image
+		Image backgroundImage = new Image("view/resources/spacebg2.png", 1200, 1200, false, true);
 		BackgroundImage background = new BackgroundImage(backgroundImage, BackgroundRepeat.REPEAT,
 				BackgroundRepeat.REPEAT, BackgroundPosition.DEFAULT, null);
 		mainPane.setBackground(new Background(background));
 	}
 
 	private void createLogo() {
+		//creates galaxyhunt button
 		ImageView logo = new ImageView("view/resources/gh_transparent.png");
 		logo.setFitHeight(62);
 		logo.setFitWidth(375);
@@ -221,7 +227,6 @@ public class ViewManager {
 
 	//CREDITS SUBSCENE
 	//TODO: ADD RELEVANT LINKS/ASSET REFERENCES
-	//TODO: ASK OTHERS IF THEY WANNA PUT LINKS TO WEBSITES, PROJECTS
 	private void createCreditsSubScene() {
 		creditsSubscene = new GalaxyHuntSubscene();
 		mainPane.getChildren().add(creditsSubscene);
@@ -230,7 +235,7 @@ public class ViewManager {
 		credits.setLayoutX(120);
 		credits.setLayoutY(20);
 		Label team = new Label("Programming by Team9 (Mason Tipton, Corrin Schuelke, Lucas Hauge, Michael Arndt)");
-		Label assetCredit = new Label("Sounds and images by ");
+		Label assetCredit = new Label("Sounds and images added by ");
 		Label masonCredit = new Label("Mason Tipton");
 		
 		String[]link    = new String[6];
@@ -246,12 +251,11 @@ public class ViewManager {
 		Hyperlink link2 = new Hyperlink("SoundBible");
 		Hyperlink link3 = new Hyperlink("FreeSoundsLibrary");
 		
-		Hyperlink sampleTextLink = new Hyperlink("Click here!");
 				
 		VBox creditsBox = new VBox(10, team, assetCredit, link0, link1, link2, link3, masonCredit);
-		
 		creditsBox.setLayoutX(50);
 		creditsBox.setLayoutY(80);
+		
 		creditsSubscene.getPane().getChildren().addAll(credits, creditsBox);
 		
 		/*Application app = new Application() {@Override public void start(Stage primaryStage) throws Exception{}};

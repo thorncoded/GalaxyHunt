@@ -152,8 +152,8 @@ public class GameViewManager {
 	}
 	
 	private void createBackground() {
-		bg = new Sprite("space", "object/resources/spacebg.jpg");
-		bg.setPosition(0, 0);
+		bg = new Sprite("space", "object/resources/spacebg2.png");
+		bg.setPosition(80, 1000);
 	}
 	private void createShip() {
 		ship = new Player("player", "object/resources/player.png");
